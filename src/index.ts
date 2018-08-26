@@ -102,6 +102,7 @@ export class RPCServer extends EventEmitter {
             if (new RegExp(t).test(topic)) {
                 this._subscribes[t].forEach((id: string) => {
                     rpc.To = id;
+                    rpc.Path = topic
                     try {
                         this.sendTo(id, rpc.encode())
                         pubs.push(id)
