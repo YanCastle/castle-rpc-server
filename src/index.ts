@@ -28,10 +28,6 @@ export class RPCServer extends EventEmitter {
             [index: string]: any
         }
     } = {}
-    /**
-     * 订阅列表
-     */
-    protected subscribes: { [index: string]: string[] } = {}
     protected debug: boolean = false;
     constructor(options: { debug?: boolean }) {
         super()
@@ -91,8 +87,8 @@ export class RPCServer extends EventEmitter {
     async publish(topic: string, data: any) {
         Object.keys(this._subscribes).forEach((topic: string) => {
             if (new RegExp(topic).test(topic)) {
-                Object.keys(this.subscribes[topic]).forEach((id: string) => {
-                    this.subscribes[topic][id](data, '', topic)
+                Object.keys(this._subscribes[topic]).forEach((id: string) => {
+                    this._subscribes[topic][id](data, '', topic)
                 })
             }
         })
@@ -102,9 +98,9 @@ export class RPCServer extends EventEmitter {
         rpc.Data = data;
         rpc.NeedReply = false;
         let pubs = [];
-        Object.keys(this.subscribes).forEach((topic: string) => {
+        Object.keys(this._subscribes).forEach((topic: string) => {
             if (new RegExp(topic).test(topic)) {
-                this.subscribes[topic].forEach((id: string) => {
+                this._subscribes[topic].forEach((id: string) => {
                     rpc.To = id;
                     try {
                         this.sendTo(id, rpc.encode())
@@ -143,14 +139,14 @@ export class RPCServer extends EventEmitter {
         // console.log(`From:${rpc.From},ID:${rpc.ID},Data:${rpc.Data}`)
         Object.keys(this._subscribes).forEach((topic: string) => {
             if (new RegExp(topic).test(rpc.Path)) {
-                Object.keys(this.subscribes[topic]).forEach((id: string) => {
-                    this.subscribes[topic][id](rpc.Data, rpc.From, rpc.Path)
+                Object.keys(this._subscribes[topic]).forEach((id: string) => {
+                    this._subscribes[topic][id](rpc.Data, rpc.From, rpc.Path)
                 })
             }
         })
-        Object.keys(this.subscribes).forEach((topic: string) => {
+        Object.keys(this._subscribes).forEach((topic: string) => {
             if (new RegExp(topic).test(rpc.Path)) {
-                this.subscribes[topic].forEach((id: string) => {
+                this._subscribes[topic].forEach((id: string) => {
                     rpc.To = id;
                     try {
                         this.sendTo(id, rpc.encode(), ctx)
@@ -344,18 +340,18 @@ export class RPCServer extends EventEmitter {
     }
     protected handleSubscribe(ID: string, topic: string) {
         this.emit(ServerEvent.SUBSCRIBE, { ID, Topic: topic })
-        if (!this.subscribes[topic]) { this.subscribes[topic] = [] }
-        if (this.subscribes[topic].indexOf(ID) == -1) {
-            this.subscribes[topic].push(ID)
+        if (!this._subscribes[topic]) { this._subscribes[topic] = {} }
+        if (this._subscribes[topic].indexOf(ID) == -1) {
+            this._subscribes[topic].push(ID)
             this.clients[ID].subscribes.push(topic)
         }
     }
     protected handleUnSubscribe(ID: string, topic: string) {
         topic = checkTopic(topic)
         this.emit(ServerEvent.UNSUBSCRIBE, { ID, Topic: topic })
-        if (!this.subscribes[topic]) { this.subscribes[topic] = [] }
-        let i = this.subscribes[topic].indexOf(ID)
-        if (i > -1) { this.subscribes[topic].splice(i, 1) }
+        if (!this._subscribes[topic]) { this._subscribes[topic] = {} }
+        let i = this._subscribes[topic].indexOf(ID)
+        if (i > -1) { this._subscribes[topic].splice(i, 1) }
     }
     protected genClientAddress() {
         while (true) {
@@ -387,9 +383,9 @@ export class RPCServer extends EventEmitter {
                 }
             })
             this.clients[ctx.ID].subscribes.forEach((e: string) => {
-                let i = this.subscribes[e].indexOf(ctx.ID);
+                let i = this._subscribes[e].indexOf(ctx.ID);
                 if (i > -1) {
-                    this.subscribes[e].splice(i, 1)
+                    this._subscribes[e].splice(i, 1)
                 }
             })
             delete this.clients[ctx.ID]
