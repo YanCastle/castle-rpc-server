@@ -64,7 +64,7 @@ export class RPCServer extends EventEmitter {
     getServicesClients(ServiceName: string) {
         return this.services[ServiceName] ? Object.keys(this.services[ServiceName]) : []
     }
-    protected _subscribes: { [index: string]: { [index: string]: Function } } = {}
+    protected _subscribes: { [index: string]: string[] } = {}
     /**
      * 服务端订阅
      * @param topic 
@@ -98,9 +98,9 @@ export class RPCServer extends EventEmitter {
         rpc.Data = data;
         rpc.NeedReply = false;
         let pubs = [];
-        Object.keys(this._subscribes).forEach((topic: string) => {
-            if (new RegExp(topic).test(topic)) {
-                this._subscribes[topic].forEach((id: string) => {
+        Object.keys(this._subscribes).forEach((t: string) => {
+            if (new RegExp(t).test(topic)) {
+                this._subscribes[t].forEach((id: string) => {
                     rpc.To = id;
                     try {
                         this.sendTo(id, rpc.encode())
@@ -340,7 +340,7 @@ export class RPCServer extends EventEmitter {
     }
     protected handleSubscribe(ID: string, topic: string) {
         this.emit(ServerEvent.SUBSCRIBE, { ID, Topic: topic })
-        if (!this._subscribes[topic]) { this._subscribes[topic] = {} }
+        if (!this._subscribes[topic]) { this._subscribes[topic] = [] }
         if (this._subscribes[topic].indexOf(ID) == -1) {
             this._subscribes[topic].push(ID)
             this.clients[ID].subscribes.push(topic)
@@ -349,7 +349,7 @@ export class RPCServer extends EventEmitter {
     protected handleUnSubscribe(ID: string, topic: string) {
         topic = checkTopic(topic)
         this.emit(ServerEvent.UNSUBSCRIBE, { ID, Topic: topic })
-        if (!this._subscribes[topic]) { this._subscribes[topic] = {} }
+        if (!this._subscribes[topic]) { this._subscribes[topic] = [] }
         let i = this._subscribes[topic].indexOf(ID)
         if (i > -1) { this._subscribes[topic].splice(i, 1) }
     }
