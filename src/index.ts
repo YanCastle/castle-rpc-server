@@ -162,7 +162,7 @@ export class RPCServer extends EventEmitter {
         rpc.To = rpc.From
         rpc.Data = pubs.length > 100 ? pubs.length : pubs;
         rpc.Type = RPCType.Response
-        this.send(rpc.encode(), ctx)
+        this.send(rpc, ctx)
     }
     /**
      * 登陆处理逻辑
@@ -188,14 +188,14 @@ export class RPCServer extends EventEmitter {
         }
         rpc.To = rpc.From
         rpc.From = ''
-        this.send(rpc.encode(), ctx)
+        this.send(rpc, ctx)
     }
     /**
      * 发送
      * @param content 
      * @param options 
      */
-    async send(content: string | Buffer, options: any) {
+    async send(content: RPC, options: any) {
         throw ServerError.UNKONW_SEND
     }
     /**
@@ -221,6 +221,8 @@ export class RPCServer extends EventEmitter {
             rpc = JSON.parse(data)
         } else if (data instanceof Buffer) {
             rpc = RPC.decode(data)
+        } else if (data instanceof RPC) {
+            rpc = data;
         } else {
             throw ServerError.UNKNOW_DATA
         }
@@ -242,7 +244,7 @@ export class RPCServer extends EventEmitter {
                             rpc.To = rpc.From;
                             rpc.From = ''
                             rpc.NeedReply = false;
-                            this.send(rpc.encode(), options)
+                            this.send(rpc, options)
                         }
                     }
                     break;
@@ -275,7 +277,7 @@ export class RPCServer extends EventEmitter {
                     rpc.To = rpc.From
                     rpc.From = ''
                     rpc.Type = RPCType.Response
-                    this.send(rpc.encode(), options)
+                    this.send(rpc, options)
                     break;
                 case RPCType.Pub:
                     this.handlePublish(rpc, options)
@@ -301,7 +303,7 @@ export class RPCServer extends EventEmitter {
                     } finally {
                         rpc.To = rpc.From
                         rpc.Type = RPCType.Response
-                        this.send(rpc.encode(), options)
+                        this.send(rpc, options)
                     }
 
                     break;
@@ -324,7 +326,7 @@ export class RPCServer extends EventEmitter {
                     } finally {
                         if (rpc.Status) { rpc.Data = '' }
                         rpc.Type = RPCType.Response
-                        this.send(rpc.encode(), options)
+                        this.send(rpc, options)
                     }
                     break;
 
@@ -335,7 +337,7 @@ export class RPCServer extends EventEmitter {
                 rpc.Data = error.message
                 rpc.To = rpc.From;
                 rpc.From = ''
-                this.send(rpc.encode(), options)
+                this.send(rpc, options)
             }
         }
     }
