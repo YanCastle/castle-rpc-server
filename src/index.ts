@@ -235,6 +235,7 @@ export class RPCServer extends EventEmitter {
                         rpc.Data = await this.controller(rpc.Path, rpc.Data, rpc, options)
                     } catch (e) {
                         rpc.Data = { m: e.message }
+                        rpc.Status = false;
                         if (this.debug) {
                             rpc.Data['e'] = e.stack
                         }
