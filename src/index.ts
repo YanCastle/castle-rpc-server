@@ -104,7 +104,7 @@ export class RPCServer extends EventEmitter {
                     rpc.To = id;
                     rpc.Path = topic
                     try {
-                        this.sendTo(id, rpc.encode())
+                        this.sendTo(id, rpc)
                         pubs.push(id)
                         // console.log(`To:${rpc.To},ID:${rpc.ID},Data:${rpc.Data}`)
                     } catch (error) {
@@ -150,7 +150,7 @@ export class RPCServer extends EventEmitter {
                 this._subscribes[topic].forEach((id: string) => {
                     rpc.To = id;
                     try {
-                        this.sendTo(id, rpc.encode(), ctx)
+                        this.sendTo(id, rpc, ctx)
                         pubs.push(id)
                         // console.log(`To:${rpc.To},ID:${rpc.ID},Data:${rpc.Data}`)
                     } catch (error) {
@@ -204,7 +204,7 @@ export class RPCServer extends EventEmitter {
      * @param content 
      * @param options 
      */
-    async sendTo(ID: string, content: string | Buffer, options?: any) {
+    async sendTo(ID: string, content: string | Buffer | RPC, options?: any) {
         throw ServerError.UNKONW_SEND
     }
     /**
@@ -374,7 +374,7 @@ export class RPCServer extends EventEmitter {
             rpc.NeedReply = false;
             rpc.Path = path
             rpc.Data = data
-            this.sendTo(to, rpc.encode(), this.clients[to].options)
+            this.sendTo(to, rpc, this.clients[to].options)
         } else {
             throw ServerError.NOT_ONLINE
         }
@@ -413,7 +413,7 @@ export class RPCServer extends EventEmitter {
                 this.reject(r.ID, ServerError.TIMEOUT)
             }, options.Timeout)
         }
-        this.sendTo(to, r.encode(), this.clients[to].options)
+        this.sendTo(to, r, this.clients[to].options)
         if (options.NeedReply !== false) {
             r.NeedReply = true;
             return new Promise((resolve, reject) => {
