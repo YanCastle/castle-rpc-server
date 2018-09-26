@@ -65,6 +65,7 @@ export class RPCServer extends EventEmitter {
         return this.services[ServiceName] ? Object.keys(this.services[ServiceName]) : []
     }
     protected _subscribes: { [index: string]: string[] } = {}
+    protected _serverSbscribes: { [index: string]: string[] } = {}
     /**
      * 服务端订阅
      * @param topic 
@@ -74,7 +75,7 @@ export class RPCServer extends EventEmitter {
     async subscribe(topic: string, cb: Function, index: number | string = 0) {
         try {
             topic = checkTopic(topic);
-            this._subscribes[topic][index] = cb
+            this._serverSbscribes[topic][index] = cb
         } catch (error) {
             return false;
         }
@@ -85,10 +86,11 @@ export class RPCServer extends EventEmitter {
      * @param data 
      */
     async publish(topic: string, data: any) {
-        Object.keys(this._subscribes).forEach((topic: string) => {
+        //TODO 识别服务端订阅和服务端发布
+        Object.keys(this._serverSbscribes).forEach((topic: string) => {
             if (new RegExp(topic).test(topic)) {
-                Object.keys(this._subscribes[topic]).forEach((id: string) => {
-                    this._subscribes[topic][id](data, '', topic)
+                Object.keys(this._serverSbscribes[topic]).forEach((id: string) => {
+                    this._serverSbscribes[topic][id](data, '', topic)
                 })
             }
         })
@@ -123,8 +125,8 @@ export class RPCServer extends EventEmitter {
     async unsubscribe(topic: string, index: number | string = 0) {
         try {
             topic = checkTopic(topic);
-            if (this._subscribes[topic][index])
-                delete this._subscribes[topic][index]
+            if (this._serverSbscribes[topic][index])
+                delete this._serverSbscribes[topic][index]
         } catch (error) {
             return false;
         }
@@ -138,10 +140,10 @@ export class RPCServer extends EventEmitter {
         //发布
         let pubs: string[] = [];
         // console.log(`From:${rpc.From},ID:${rpc.ID},Data:${rpc.Data}`)
-        Object.keys(this._subscribes).forEach((topic: string) => {
+        Object.keys(this._serverSbscribes).forEach((topic: string) => {
             if (new RegExp(topic).test(rpc.Path)) {
-                Object.keys(this._subscribes[topic]).forEach((id: string) => {
-                    this._subscribes[topic][id](rpc.Data, rpc.From, rpc.Path)
+                Object.keys(this._serverSbscribes[topic]).forEach((id: string) => {
+                    this._serverSbscribes[topic][id](rpc.Data, rpc.From, rpc.Path)
                 })
             }
         })
