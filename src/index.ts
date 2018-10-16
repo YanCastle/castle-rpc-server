@@ -29,6 +29,24 @@ export class RPCServer extends EventEmitter {
         }
     } = {}
     protected debug: boolean = false;
+    protected _id: number = 0;
+    get id() {
+        let len = Object.keys(this._promise).length;
+        if (len > 65535) {
+            throw new Error('');
+        }
+        while (true) {
+            if (this._id > 65535) {
+                this._id = 0;
+            }
+            if (this._promise[this._id]) {
+                this._id++;
+            }
+            else {
+                return this._id;
+            }
+        }
+    }
     constructor(options: { debug?: boolean }) {
         super()
         if (options) {
@@ -409,6 +427,7 @@ export class RPCServer extends EventEmitter {
         r.To = to;
         r.Type = RPCType.Request
         r.Time = Date.now()
+        r.ID = this.id;
         if (options.Timeout && options.Timeout > 0) {
             r.Timeout = Number(options.Timeout)
             setTimeout(() => {
