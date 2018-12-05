@@ -30,6 +30,12 @@ export class RPCServer extends EventEmitter {
     } = {}
     protected debug: boolean = false;
     protected _id: number = 0;
+    /**
+     * 获取所有的链接
+     */
+    public get Clients() {
+        return this.clients;
+    }
     get id() {
         let len = Object.keys(this._promise).length;
         if (len > 65535) {
