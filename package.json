@@ -1,6 +1,6 @@
 {
   "name": "castle-rpc-server",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,7 +24,7 @@
   "homepage": "https://github.com/YanCastle/castle-rpc-server#readme",
   "dependencies": {
     "castle-covert": "^1.0.2",
-    "castle-rpc": "^1.0.4",
+    "castle-rpc": "^2.0.0",
     "eventemitter3": "^3.1.0"
   },
   "devDependencies": {
