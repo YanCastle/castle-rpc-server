@@ -24,7 +24,7 @@
   "homepage": "https://github.com/YanCastle/castle-rpc-server#readme",
   "dependencies": {
     "castle-covert": "^1.0.2",
-    "castle-rpc": "^2.0.0",
+    "castle-rpc": "^2.0.1",
     "eventemitter3": "^3.1.0"
   },
   "devDependencies": {

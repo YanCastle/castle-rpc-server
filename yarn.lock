@@ -25,10 +25,10 @@ castle-covert@^1.0.2:
   resolved "https://registry.yarnpkg.com/castle-covert/-/castle-covert-1.0.2.tgz#10e95c58047b0273fa4927cc09feba7fda4ab7cb"
   integrity sha512-r0TfE0V3auIvRE+z7YAZiDZpAsT8g65A4GZmBRU2VChkhNoHGHTjxTc2oXw8+2ogAqvqN+KG0FdN8tIDvIsiqw==
 
-castle-rpc@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/castle-rpc/-/castle-rpc-1.0.4.tgz#7fdc5fc911e12a090187b648b1147d53e881eb88"
-  integrity sha512-ilfLii30Xr7lUfhAmYEpnMG3e8FvjUHr+8WJ8fTU5KyRk6qaJKZMbfZCG1EDPI9G7g/IDHkaIE0/8t1KrETq5w==
+castle-rpc@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/castle-rpc/-/castle-rpc-2.0.1.tgz#cf92b1475f6eb885e3680d82ebe67c59bd2367d4"
+  integrity sha512-PWqlCw8T/r4mpeLQ2ZjKtWP6uNg+IxzE1XpjqDXnUYwqZ2C5H7ctF/vXSsSZcgOW2nsYq7jm+f38yfFzFpBhpw==
   dependencies:
     buffer "^5.2.0"
 
