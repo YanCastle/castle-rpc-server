@@ -59,7 +59,7 @@ export class RPCServer extends EventEmitter {
             if (options.debug) this.debug = options.debug
         }
     }
-    async controller(path: string, data: any, rpc: RPC, options: any) {
+    async controller(path: string, data: any, rpc: RPC, options: any): Promise<any> {
         return true;
     }
     /**
