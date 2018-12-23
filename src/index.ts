@@ -314,11 +314,11 @@ export class RPCServer extends EventEmitter {
                     try {
                         if ('string' == typeof rpc.Data) {
                             let topic = checkTopic(rpc.Data)
-                            this.handleSubscribe(rpc.From, topic)
+                            this.handleSubscribe(options.ID, topic)
                         } else if (rpc.Data instanceof Array) {
                             rpc.Data.forEach((topic: string) => {
                                 topic = checkTopic(topic)
-                                this.handleSubscribe(rpc.From, topic)
+                                this.handleSubscribe(options.ID, topic)
                             })
                         } else {
                             rpc.Status = false;
@@ -338,10 +338,10 @@ export class RPCServer extends EventEmitter {
                     //取消订阅
                     try {
                         if ('string' == typeof rpc.Data) {
-                            this.handleUnSubscribe(rpc.From, rpc.Data)
+                            this.handleUnSubscribe(options.ID, rpc.Data)
                         } else if (rpc.Data instanceof Array) {
                             rpc.Data.forEach((topic: string) => {
-                                this.handleUnSubscribe(rpc.From, topic)
+                                this.handleUnSubscribe(options.ID, topic)
                             })
                         } else {
                             rpc.Status = false;
