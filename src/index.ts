@@ -12,7 +12,8 @@ export enum ServerEvent {
     CLOSED = 'CLOSED',
     REGIST = 'REGIST',
     UNREGIST = 'UNREGIST',
-    REQUEST = 'REQUEST'
+    REQUEST = 'REQUEST',
+    HEART = 'HEART',
 }
 export class RPCServer extends EventEmitter {
     protected ClientAddress: number = 0
@@ -285,7 +286,12 @@ export class RPCServer extends EventEmitter {
                 case RPCType.UnSub:
                     this.handUnSub(rpc, options);
                     break;
-
+                case RPCType.Heart:
+                    this.emit(ServerEvent.HEART, { rpc, options })
+                    break;
+                default:
+                    this.emit(`REQUEST_${RPCType[rpc.Type] || 'UNKNOW'}`, { rpc, options })
+                    break;
             }
         } catch (error) {
             if (rpc.NeedReply) {
