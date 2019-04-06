@@ -200,6 +200,7 @@ export class RPCServer extends EventEmitter {
         rpc.Type = RPCType.Response
         if (this.clients[rpc.From]) {
             rpc.Status = false;
+            //分配新的ID
             rpc.Data = this.genClientAddress()
         } else {
             if (ctx.ID) {
@@ -253,27 +254,13 @@ export class RPCServer extends EventEmitter {
             throw ServerError.UNKNOW_DATA
         }
         try {
+            if (options.ID) {
+                rpc.From = options.ID;
+            }
             this.emit(ServerEvent.MESSAGE, rpc)
             switch (rpc.Type) {
                 case RPCType.Request:
-                    try {
-                        this.emit(ServerEvent.REQUEST, rpc)
-                        rpc.Data = await this.controller(rpc.Path, rpc.Data, rpc, options)
-                    } catch (e) {
-                        rpc.Data = { m: e.message }
-                        rpc.Status = false;
-                        if (this.debug) {
-                            rpc.Data['e'] = e.stack
-                        }
-                    } finally {
-                        if (rpc.NeedReply) {
-                            rpc.Type = RPCType.Response
-                            rpc.To = rpc.From;
-                            rpc.From = ''
-                            rpc.NeedReply = false;
-                            this.send(rpc, options)
-                        }
-                    }
+                    this.handRequest(rpc, options)
                     break;
                 case RPCType.Proxy:
                     break;
@@ -287,74 +274,16 @@ export class RPCServer extends EventEmitter {
                     this.handleLogin(rpc, options)
                     break;
                 case RPCType.Regist:
-                    if (!this.services[rpc.Path]) { this.services[rpc.Path] = {} }
-                    if (rpc.Data) {
-                        //注册
-                        this.services[rpc.Path][options.ID] = options
-                        this.clients[rpc.From].services.push(rpc.Path)
-                        this.emit(ServerEvent.REGIST, rpc)
-                    } else {
-                        //注销                        
-                        if (this.services[rpc.Path][options.ID])
-                            delete this.services[rpc.Path][options.ID]
-                        let i = this.clients[rpc.ID].services.indexOf(rpc.Path)
-                        if (i > -1) { this.clients[rpc.ID].services.splice(i, 1) }
-                        this.emit(ServerEvent.UNREGIST, rpc)
-                    }
-                    rpc.To = rpc.From
-                    rpc.From = ''
-                    rpc.Type = RPCType.Response
-                    this.send(rpc, options)
+                    this.handRegist(rpc, options)
                     break;
                 case RPCType.Pub:
                     this.handlePublish(rpc, options)
                     break;
                 case RPCType.Sub:
-                    //订阅
-                    try {
-                        if ('string' == typeof rpc.Data) {
-                            let topic = checkTopic(rpc.Data)
-                            this.handleSubscribe(options.ID, topic)
-                        } else if (rpc.Data instanceof Array) {
-                            rpc.Data.forEach((topic: string) => {
-                                topic = checkTopic(topic)
-                                this.handleSubscribe(options.ID, topic)
-                            })
-                        } else {
-                            rpc.Status = false;
-                            rpc.Data = 'ErrorTopic'
-                        }
-                    } catch (error) {
-                        rpc.Status = false;
-                        rpc.Data = 'ErrorTopic'
-                    } finally {
-                        rpc.To = rpc.From
-                        rpc.Type = RPCType.Response
-                        this.send(rpc, options)
-                    }
-
+                    this.handSub(rpc, options)
                     break;
                 case RPCType.UnSub:
-                    //取消订阅
-                    try {
-                        if ('string' == typeof rpc.Data) {
-                            this.handleUnSubscribe(options.ID, rpc.Data)
-                        } else if (rpc.Data instanceof Array) {
-                            rpc.Data.forEach((topic: string) => {
-                                this.handleUnSubscribe(options.ID, topic)
-                            })
-                        } else {
-                            rpc.Status = false;
-                            rpc.Data = 'ErrorTopic'
-                        }
-                    } catch (error) {
-                        rpc.Status = false;
-                        rpc.Data = 'ErrorTopic'
-                    } finally {
-                        if (rpc.Status) { rpc.Data = '' }
-                        rpc.Type = RPCType.Response
-                        this.send(rpc, options)
-                    }
+                    this.handUnSub(rpc, options);
                     break;
 
             }
@@ -364,6 +293,97 @@ export class RPCServer extends EventEmitter {
                 rpc.Data = error.message
                 rpc.To = rpc.From;
                 rpc.From = ''
+                this.send(rpc, options)
+            }
+        }
+    }
+    protected handRegist(rpc, options) {
+        if (!this.services[rpc.Path]) { this.services[rpc.Path] = {} }
+        if (rpc.Data) {
+            //注册
+            this.services[rpc.Path][options.ID] = options
+            this.clients[rpc.From].services.push(rpc.Path)
+            this.emit(ServerEvent.REGIST, rpc)
+        } else {
+            //注销                        
+            if (this.services[rpc.Path][options.ID])
+                delete this.services[rpc.Path][options.ID]
+            let i = this.clients[rpc.ID].services.indexOf(rpc.Path)
+            if (i > -1) { this.clients[rpc.ID].services.splice(i, 1) }
+            this.emit(ServerEvent.UNREGIST, rpc)
+        }
+        rpc.To = rpc.From
+        rpc.From = ''
+        rpc.Type = RPCType.Response
+        this.send(rpc, options)
+    }
+    protected handSub(rpc, options) {
+        //订阅
+        try {
+            if ('string' == typeof rpc.Data) {
+                let topic = checkTopic(rpc.Data)
+                this.handleSubscribe(options.ID, topic)
+            } else if (rpc.Data instanceof Array) {
+                rpc.Data.forEach((topic: string) => {
+                    topic = checkTopic(topic)
+                    this.handleSubscribe(options.ID, topic)
+                })
+            } else {
+                rpc.Status = false;
+                rpc.Data = 'ErrorTopic'
+            }
+        } catch (error) {
+            rpc.Status = false;
+            rpc.Data = 'ErrorTopic'
+        } finally {
+            rpc.To = rpc.From
+            rpc.Type = RPCType.Response
+            this.send(rpc, options)
+        }
+    }
+    protected handUnSub(rpc, options) {
+        //取消订阅
+        try {
+            if ('string' == typeof rpc.Data) {
+                this.handleUnSubscribe(options.ID, rpc.Data)
+            } else if (rpc.Data instanceof Array) {
+                rpc.Data.forEach((topic: string) => {
+                    this.handleUnSubscribe(options.ID, topic)
+                })
+            } else {
+                rpc.Status = false;
+                rpc.Data = 'ErrorTopic'
+            }
+        } catch (error) {
+            rpc.Status = false;
+            rpc.Data = 'ErrorTopic'
+        } finally {
+            if (rpc.Status) { rpc.Data = '' }
+            rpc.Type = RPCType.Response
+            this.send(rpc, options)
+        }
+    }
+    /**
+     * 处理请求
+     * @param rpc 
+     * @param options 
+     */
+    protected async handRequest(rpc, options) {
+        try {
+            this.emit(ServerEvent.REQUEST, rpc)
+            rpc.Data = await this.controller(rpc.Path, rpc.Data, rpc, options)
+        } catch (e) {
+            rpc.Data = { m: e.message }
+            rpc.Status = false;
+            if (this.debug) {
+                rpc.Data['e'] = e.stack
+            }
+        } finally {
+            if (rpc.NeedReply) {
+                rpc.Type = RPCType.Response
+                rpc.To = rpc.From;
+                rpc.From = ''
+                rpc.NeedReply = false;
                 this.send(rpc, options)
             }
         }
