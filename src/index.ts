@@ -199,7 +199,8 @@ export class RPCServer extends EventEmitter {
     async handleLogin(rpc: RPC, ctx: any) {
         rpc.Data = true
         // rpc.Type = RPCType.Response
-        if (this.clients[rpc.From]) {
+        let from: any = rpc.From;
+        if (this.clients[from]) {
             rpc.Status = false;
             //分配新的ID
             // rpc.Data = this.genClientAddress()
@@ -208,13 +209,13 @@ export class RPCServer extends EventEmitter {
                 this.close(ctx)
             }
             ctx.ID = rpc.From;
-            this.clients[rpc.From] = {
+            this.clients[from] = {
                 options: ctx,
                 services: [],
                 subscribes: []
             };
         }
-        rpc.To = rpc.From
+        rpc.To = from
         rpc.From = ''
         this.send(rpc, ctx).then(() => {
             this.close(ctx);
