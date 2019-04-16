@@ -1,4 +1,4 @@
-import { RPC, RPCType, checkTopic } from 'castle-rpc'
+import { RPC, RPCType, checkTopic } from '@ctsy/rpc'
 import { base_covert } from 'castle-covert';
 import { EventEmitter } from 'eventemitter3';
 const max = 218340105584896;
@@ -264,12 +264,10 @@ export class RPCServer extends EventEmitter {
                     this.handRequest(rpc, options)
                     break;
                 case RPCType.Proxy:
+                    this.handProxy(rpc, options)
                     break;
                 case RPCType.Response:
-                    if (rpc.Status)
-                        this.resolve(rpc.ID, rpc.Data)
-                    else
-                        this.reject(rpc.ID, rpc.Data)
+                    this.handResponse(rpc, options)
                     break;
                 case RPCType.Login:
                     this.handleLogin(rpc, options)
@@ -286,10 +284,16 @@ export class RPCServer extends EventEmitter {
                 case RPCType.UnSub:
                     this.handUnSub(rpc, options);
                     break;
-                case RPCType.Heart:
+                case RPCType.Ping:
+                    this.handHeart(rpc, options)
+                    this.emit(ServerEvent.HEART, { rpc, options })
+                    break;
+                case RPCType.Pong:
+                    this.handHeart(rpc, options)
                     this.emit(ServerEvent.HEART, { rpc, options })
                     break;
                 default:
+                    this.handUnknow(rpc, options)
                     this.emit(`REQUEST_${RPCType[rpc.Type] || 'UNKNOW'}`, { rpc, options })
                     break;
             }
@@ -302,6 +306,21 @@ export class RPCServer extends EventEmitter {
                 this.send(rpc, options)
             }
         }
+    }
+    protected handProxy(rpc, options) {
+
+    }
+    protected handHeart(rpc, options) {
+
+    }
+    protected handUnknow(rpc, options) {
+
+    }
+    protected handResponse(rpc, options) {
+        if (rpc.Status)
+            this.resolve(rpc.ID, rpc.Data)
+        else
+            this.reject(rpc.ID, rpc.Data)
     }
     protected handRegist(rpc, options) {
         if (!this.services[rpc.Path]) { this.services[rpc.Path] = {} }
@@ -458,7 +477,6 @@ export class RPCServer extends EventEmitter {
         r.From = '';
         r.To = to;
         r.Type = RPCType.Request
-        r.Time = Date.now()
         r.ID = this.id;
         if (options.Timeout && options.Timeout > 0) {
             r.Timeout = Number(options.Timeout)
