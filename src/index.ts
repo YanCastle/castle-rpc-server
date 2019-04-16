@@ -204,6 +204,9 @@ export class RPCServer extends EventEmitter {
             rpc.Status = false;
             //分配新的ID
             // rpc.Data = this.genClientAddress()
+            setTimeout(() => {
+                this.close(ctx);
+            }, 300)
         } else {
             if (ctx.ID) {
                 this.close(ctx)
@@ -217,9 +220,7 @@ export class RPCServer extends EventEmitter {
         }
         rpc.To = from
         rpc.From = ''
-        this.send(rpc, ctx).then(() => {
-            this.close(ctx);
-        })
+        this.send(rpc, ctx)
     }
     /**
      * 发送
@@ -453,6 +454,9 @@ export class RPCServer extends EventEmitter {
             throw ServerError.NOT_ONLINE
         }
     }
+    onclose() {
+
+    }
     async close(ctx) {
         if (ctx.ID && this.clients[ctx.ID]) {
             this.clients[ctx.ID].services.forEach((e: string) => {
@@ -468,6 +472,7 @@ export class RPCServer extends EventEmitter {
             })
             delete this.clients[ctx.ID]
             this.emit(ServerEvent.CLOSED, ctx)
+            this.onclose()
         }
     }
     async request(to: string, path: string, data: any, options: { NeedReply?: Boolean, Timeout?: number } = {}) {
