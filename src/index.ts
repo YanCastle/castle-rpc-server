@@ -191,6 +191,9 @@ export class RPCServer extends EventEmitter {
         rpc.Type = RPCType.Response
         this.send(rpc, ctx)
     }
+    async checkLogin(rpc: RPC, ctx: any) {
+        return true;
+    }
     /**
      * 登陆处理逻辑
      * @param rpc 
@@ -200,23 +203,34 @@ export class RPCServer extends EventEmitter {
         rpc.Data = true
         // rpc.Type = RPCType.Response
         let from: any = rpc.From;
-        if (this.clients[from]) {
+        try {
+            await this.checkLogin(rpc, ctx)
+            if (this.clients[from]) {
+                rpc.Status = false;
+                //分配新的ID
+                // rpc.Data = this.genClientAddress()
+                setTimeout(() => {
+                    this.close(ctx);
+                }, 300)
+            } else {
+                if (ctx.ID) {
+                    setTimeout(() => {
+                        this.close(ctx);
+                    }, 300)
+                }
+                ctx.ID = rpc.From;
+                this.clients[from] = {
+                    options: ctx,
+                    services: [],
+                    subscribes: []
+                };
+            }
+        } catch (error) {
             rpc.Status = false;
-            //分配新的ID
-            // rpc.Data = this.genClientAddress()
+            rpc.Data = 'Forbidden'
             setTimeout(() => {
                 this.close(ctx);
             }, 300)
-        } else {
-            if (ctx.ID) {
-                this.close(ctx)
-            }
-            ctx.ID = rpc.From;
-            this.clients[from] = {
-                options: ctx,
-                services: [],
-                subscribes: []
-            };
         }
         rpc.To = from
         rpc.From = ''
