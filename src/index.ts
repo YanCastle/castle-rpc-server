@@ -212,19 +212,13 @@ export class RPCServer extends EventEmitter {
                 setTimeout(() => {
                     this.close(ctx);
                 }, 300)
-            } else {
-                if (ctx.ID) {
-                    setTimeout(() => {
-                        this.close(ctx);
-                    }, 300)
-                }
-                ctx.ID = rpc.From;
-                this.clients[from] = {
-                    options: ctx,
-                    services: [],
-                    subscribes: []
-                };
             }
+            ctx.ID = rpc.From;
+            this.clients[from] = {
+                options: ctx,
+                services: [],
+                subscribes: []
+            };
         } catch (error) {
             rpc.Status = false;
             rpc.Data = 'Forbidden'
