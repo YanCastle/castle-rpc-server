@@ -210,7 +210,7 @@ export class RPCServer extends EventEmitter {
                 //分配新的ID
                 // rpc.Data = this.genClientAddress()
                 setTimeout(() => {
-                    this.close(ctx);
+                    this.close(this.clients[from].options);
                 }, 300)
             }
             ctx.ID = rpc.From;
