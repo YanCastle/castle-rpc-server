@@ -322,13 +322,13 @@ export class RPCServer extends EventEmitter {
         }
     }
     protected handProxy(rpc, options) {
-        this.emit(ServerEvent.PROXY, { rpc, options })
+        // this.emit(ServerEvent.PROXY, { rpc, options })
     }
     protected handHeart(rpc, options) {
-        this.emit(ServerEvent.HEART, { rpc, options })
+        // this.emit(ServerEvent.HEART, { rpc, options })
     }
     protected handUnknow(rpc, options) {
-        this.emit(ServerEvent.UNKNOW, { rpc, options })
+        // this.emit(ServerEvent.UNKNOW, { rpc, options })
     }
     protected handResponse(rpc, options) {
         if (rpc.Status)
