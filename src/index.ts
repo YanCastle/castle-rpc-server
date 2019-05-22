@@ -14,6 +14,8 @@ export enum ServerEvent {
     UNREGIST = 'UNREGIST',
     REQUEST = 'REQUEST',
     HEART = 'HEART',
+    UNKNOW = 'UNKNOW',
+    PROXY = 'PROXY',
 }
 export class RPCServer extends EventEmitter {
     protected ClientAddress: number = 0
@@ -320,13 +322,13 @@ export class RPCServer extends EventEmitter {
         }
     }
     protected handProxy(rpc, options) {
-
+        this.emit(ServerEvent.PROXY, { rpc, options })
     }
     protected handHeart(rpc, options) {
-
+        this.emit(ServerEvent.HEART, { rpc, options })
     }
     protected handUnknow(rpc, options) {
-
+        this.emit(ServerEvent.UNKNOW, { rpc, options })
     }
     protected handResponse(rpc, options) {
         if (rpc.Status)
